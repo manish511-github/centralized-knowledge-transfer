@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { questionId, answerId, value } = body
 
-    if ((!questionId && !answerId) || ![-1, 1].includes(value)) {
+    if ((!questionId && !answerId) || ![-1, 0, 1].includes(value)) {
       return new NextResponse("Invalid parameters", { status: 400 })
     }
 
@@ -30,7 +30,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    if (existingVote) {
+    if (value === 0 && existingVote) {
+      // Delete the vote if value is 0
+      await prisma.vote.delete({
+        where: { id: existingVote.id },
+      })
+
+      return NextResponse.json({ message: "Vote removed" })
+    } else if (existingVote) {
       // Update existing vote
       const updatedVote = await prisma.vote.update({
         where: { id: existingVote.id },
@@ -38,7 +45,7 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json(updatedVote)
-    } else {
+    } else if (value !== 0) {
       // Create new vote
       const vote = await prisma.vote.create({
         data: {
@@ -49,9 +56,12 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json(vote)
+    } else {
+      // No existing vote and value is 0, nothing to do
+      return NextResponse.json({ message: "No action needed" })
     }
   } catch (error) {
-    console.error(error)
+    console.error("Error voting:", error)
     return new NextResponse("Internal Error", { status: 500 })
   }
 }

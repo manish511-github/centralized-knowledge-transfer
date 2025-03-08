@@ -1,14 +1,19 @@
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowUp, ArrowDown, MessageSquare, Eye } from "lucide-react"
+import { MessageSquare, Eye } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import { getCurrentUser } from "@/lib/auth"
+import VoteButtons from "@/components/vote-buttons"
+import AnswerForm from "@/components/answer-form"
+import AcceptAnswerButton from "@/components/accept-answer-button"
 
 export default async function QuestionDetail({ params }: { params: { id: string } }) {
+  // Get current user
+  const currentUser = await getCurrentUser()
+
   // Fetch question with related data
   const question = await prisma.question.findUnique({
     where: { id: params.id },
@@ -40,7 +45,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
     data: { views: { increment: 1 } },
   })
 
-  // Get vote count
+  // Get vote count and user's vote
   const votes = await prisma.vote.aggregate({
     where: {
       questionId: params.id,
@@ -49,6 +54,21 @@ export default async function QuestionDetail({ params }: { params: { id: string 
       value: true,
     },
   })
+
+  // Get user's vote on the question
+  let userQuestionVote = null
+  if (currentUser) {
+    const userVote = await prisma.vote.findFirst({
+      where: {
+        questionId: params.id,
+        userId: currentUser.id,
+      },
+      select: {
+        value: true,
+      },
+    })
+    userQuestionVote = userVote?.value || null
+  }
 
   // Get answers
   const answers = await prisma.answer.findMany({
@@ -68,7 +88,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
     orderBy: [{ isAccepted: "desc" }, { createdAt: "desc" }],
   })
 
-  // Get vote counts for answers
+  // Get vote counts for answers and user's votes
   const answersWithVotes = await Promise.all(
     answers.map(async (answer) => {
       const votes = await prisma.vote.aggregate({
@@ -80,9 +100,25 @@ export default async function QuestionDetail({ params }: { params: { id: string 
         },
       })
 
+      // Get user's vote on this answer
+      let userVote = null
+      if (currentUser) {
+        const vote = await prisma.vote.findFirst({
+          where: {
+            answerId: answer.id,
+            userId: currentUser.id,
+          },
+          select: {
+            value: true,
+          },
+        })
+        userVote = vote?.value || null
+      }
+
       return {
         ...answer,
         votes: votes._sum.value || 0,
+        userVote,
       }
     }),
   )
@@ -98,10 +134,13 @@ export default async function QuestionDetail({ params }: { params: { id: string 
     })
   }
 
+  // Check if current user is the question author
+  const isQuestionAuthor = currentUser?.id === question.author.id
+
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href="/" className="text-primary hover:underline mb-4 block">
+        <Link href="/questions" className="text-primary hover:underline mb-4 block">
           ← Back to questions
         </Link>
         <h1 className="text-3xl font-bold">{question.title}</h1>
@@ -117,13 +156,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ArrowUp size={20} />
-          </Button>
-          <span className="font-semibold">{votes._sum.value || 0}</span>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ArrowDown size={20} />
-          </Button>
+          <VoteButtons questionId={question.id} initialVotes={votes._sum.value || 0} userVote={userQuestionVote} />
         </div>
 
         <div className="md:col-span-11">
@@ -169,13 +202,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
               <div key={answer.id} className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                   <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                      <ArrowUp size={20} />
-                    </Button>
-                    <span className="font-semibold">{answer.votes}</span>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                      <ArrowDown size={20} />
-                    </Button>
+                    <VoteButtons answerId={answer.id} initialVotes={answer.votes} userVote={answer.userVote} />
                   </div>
 
                   <div className="md:col-span-11">
@@ -204,7 +231,15 @@ export default async function QuestionDetail({ params }: { params: { id: string 
                               <p className="text-sm text-muted-foreground">{answer.author.department}</p>
                             </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">Answered {formatDate(answer.createdAt)}</div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm text-muted-foreground">Answered {formatDate(answer.createdAt)}</div>
+                            <AcceptAnswerButton
+                              questionId={question.id}
+                              answerId={answer.id}
+                              isAccepted={answer.isAccepted}
+                              isQuestionAuthor={isQuestionAuthor}
+                            />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -216,12 +251,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
 
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Your Answer</h2>
-            <Card>
-              <CardContent className="p-6">
-                <Textarea placeholder="Write your answer here..." rows={8} className="mb-4" />
-                <Button>Post Your Answer</Button>
-              </CardContent>
-            </Card>
+            <AnswerForm questionId={question.id} />
           </div>
         </div>
       </div>
