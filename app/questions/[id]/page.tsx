@@ -1,18 +1,22 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Eye } from "lucide-react"
-import Link from "next/link"
-import prisma from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
-import VoteButtons from "@/components/vote-buttons"
-import AnswerForm from "@/components/answer-form"
-import AcceptAnswerButton from "@/components/accept-answer-button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, Eye } from "lucide-react";
+import Link from "next/link";
+import prisma from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import VoteButtons from "@/components/vote-buttons";
+import AnswerForm from "@/components/answer-form";
+import AcceptAnswerButton from "@/components/accept-answer-button";
 
-export default async function QuestionDetail({ params }: { params: { id: string } }) {
+export default async function QuestionDetail({
+  params,
+}: {
+  params: { id: string };
+}) {
   // Get current user
-  const currentUser = await getCurrentUser()
+  const currentUser = await getCurrentUser();
 
   // Fetch question with related data
   const question = await prisma.question.findUnique({
@@ -33,17 +37,17 @@ export default async function QuestionDetail({ params }: { params: { id: string 
         },
       },
     },
-  })
+  });
 
   if (!question) {
-    notFound()
+    notFound();
   }
 
   // Increment view count
   await prisma.question.update({
     where: { id: params.id },
     data: { views: { increment: 1 } },
-  })
+  });
 
   // Get vote count and user's vote
   const votes = await prisma.vote.aggregate({
@@ -53,10 +57,10 @@ export default async function QuestionDetail({ params }: { params: { id: string 
     _sum: {
       value: true,
     },
-  })
+  });
 
   // Get user's vote on the question
-  let userQuestionVote = null
+  let userQuestionVote = null;
   if (currentUser) {
     const userVote = await prisma.vote.findFirst({
       where: {
@@ -66,8 +70,8 @@ export default async function QuestionDetail({ params }: { params: { id: string 
       select: {
         value: true,
       },
-    })
-    userQuestionVote = userVote?.value || null
+    });
+    userQuestionVote = userVote?.value || null;
   }
 
   // Get answers
@@ -86,7 +90,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
       },
     },
     orderBy: [{ isAccepted: "desc" }, { createdAt: "desc" }],
-  })
+  });
 
   // Get vote counts for answers and user's votes
   const answersWithVotes = await Promise.all(
@@ -98,10 +102,10 @@ export default async function QuestionDetail({ params }: { params: { id: string 
         _sum: {
           value: true,
         },
-      })
+      });
 
       // Get user's vote on this answer
-      let userVote = null
+      let userVote = null;
       if (currentUser) {
         const vote = await prisma.vote.findFirst({
           where: {
@@ -111,36 +115,39 @@ export default async function QuestionDetail({ params }: { params: { id: string 
           select: {
             value: true,
           },
-        })
-        userVote = vote?.value || null
+        });
+        userVote = vote?.value || null;
       }
 
       return {
         ...answer,
         votes: votes._sum.value || 0,
         userVote,
-      }
-    }),
-  )
+      };
+    })
+  );
 
   const formatDate = (dateString: string | Date) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   // Check if current user is the question author
-  const isQuestionAuthor = currentUser?.id === question.author.id
+  const isQuestionAuthor = currentUser?.id === question.author.id;
 
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href="/questions" className="text-primary hover:underline mb-4 block">
+        <Link
+          href="/questions"
+          className="text-primary hover:underline mb-4 block"
+        >
           ← Back to questions
         </Link>
         <h1 className="text-3xl font-bold">{question.title}</h1>
@@ -156,7 +163,11 @@ export default async function QuestionDetail({ params }: { params: { id: string 
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
-          <VoteButtons questionId={question.id} initialVotes={votes._sum.value || 0} userVote={userQuestionVote} />
+          <VoteButtons
+            questionId={question.id}
+            initialVotes={votes._sum.value || 0}
+            userVote={userQuestionVote}
+          />
         </div>
 
         <div className="md:col-span-11">
@@ -178,14 +189,21 @@ export default async function QuestionDetail({ params }: { params: { id: string 
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarImage
-                      src={question.author.image || "/placeholder.svg?height=40&width=40"}
+                      src={
+                        question.author.image ||
+                        "/placeholder.svg?height=40&width=40"
+                      }
                       alt={question.author.name || ""}
                     />
-                    <AvatarFallback>{question.author.name?.charAt(0) || "?"}</AvatarFallback>
+                    <AvatarFallback>
+                      {question.author.name?.charAt(0) || "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">{question.author.name}</p>
-                    <p className="text-sm text-muted-foreground">{question.author.department}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {question.author.department}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -202,11 +220,17 @@ export default async function QuestionDetail({ params }: { params: { id: string 
               <div key={answer.id} className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                   <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
-                    <VoteButtons answerId={answer.id} initialVotes={answer.votes} userVote={answer.userVote} />
+                    <VoteButtons
+                      answerId={answer.id}
+                      initialVotes={answer.votes}
+                      userVote={answer.userVote}
+                    />
                   </div>
 
                   <div className="md:col-span-11">
-                    <Card className={answer.isAccepted ? "border-green-500" : ""}>
+                    <Card
+                      className={answer.isAccepted ? "border-green-500" : ""}
+                    >
                       <CardContent className="p-6">
                         {answer.isAccepted && (
                           <div className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-3 py-1 rounded-md inline-block mb-4">
@@ -221,18 +245,29 @@ export default async function QuestionDetail({ params }: { params: { id: string 
                           <div className="flex items-center gap-3">
                             <Avatar>
                               <AvatarImage
-                                src={answer.author.image || "/placeholder.svg?height=40&width=40"}
+                                src={
+                                  answer.author.image ||
+                                  "/placeholder.svg?height=40&width=40"
+                                }
                                 alt={answer.author.name || ""}
                               />
-                              <AvatarFallback>{answer.author.name?.charAt(0) || "?"}</AvatarFallback>
+                              <AvatarFallback>
+                                {answer.author.name?.charAt(0) || "?"}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium">{answer.author.name}</p>
-                              <p className="text-sm text-muted-foreground">{answer.author.department}</p>
+                              <p className="font-medium">
+                                {answer.author.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {answer.author.department}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
-                            <div className="text-sm text-muted-foreground">Answered {formatDate(answer.createdAt)}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Answered {formatDate(answer.createdAt)}
+                            </div>
                             <AcceptAnswerButton
                               questionId={question.id}
                               answerId={answer.id}
@@ -256,6 +291,5 @@ export default async function QuestionDetail({ params }: { params: { id: string 
         </div>
       </div>
     </main>
-  )
+  );
 }
-
