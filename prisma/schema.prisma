@@ -19,13 +19,14 @@ model User {
   department     String?
   reputation     Int       @default(0)
   bio            String?   @db.Text
-  role           String? // Added role field
+  role           String?
 
-  questions Question[]
-  answers   Answer[]
-  votes     Vote[]
-  accounts  Account[]
-  sessions  Session[]
+  questions      Question[]
+  answers        Answer[]
+  votes          Vote[]
+  accounts       Account[]
+  sessions       Session[]
+  visibleAnswers AnswerVisibility[] @relation("VisibleToUsers")
 }
 
 model Account {
@@ -79,17 +80,32 @@ model Question {
 }
 
 model Answer {
-  id         String   @id @default(cuid())
-  body       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  authorId   String
-  questionId String
-  isAccepted Boolean  @default(false)
+  id                   String   @id @default(cuid())
+  body                 String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  authorId             String
+  questionId           String
+  isAccepted           Boolean  @default(false)
+  visibilityType       String   @default("public") // public, roles, departments, specific_users
+  visibleToRoles       String[] @default([])
+  visibleToDepartments String[] @default([])
 
-  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  votes    Vote[]
+  author         User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  question       Question           @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  votes          Vote[]
+  visibleToUsers AnswerVisibility[]
+}
+
+model AnswerVisibility {
+  id       String @id @default(cuid())
+  answerId String
+  userId   String
+
+  answer Answer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user   User   @relation("VisibleToUsers", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, userId])
 }
 
 model Vote {
