@@ -62,18 +62,18 @@ export default function AcceptAnswerButton({
     }
   }
 
-  if (!isQuestionAuthor) return null
+  if (!isQuestionAuthor || isAccepted) return null
 
   return (
     <Button
-      variant={isAccepted ? "default" : "outline"}
+      variant="outline"
       size="sm"
-      className={`gap-1 ${isAccepted ? "bg-green-600 hover:bg-green-700" : "text-green-600 border-green-600 hover:bg-green-50"}`}
+      className="gap-1 text-green-600 border-green-600 hover:bg-green-50 dark:hover:bg-green-950 dark:text-green-400 dark:border-green-400"
       onClick={handleAccept}
-      disabled={isSubmitting || isAccepted}
+      disabled={isSubmitting}
     >
       <Check size={16} />
-      {isAccepted ? "Accepted" : "Accept Answer"}
+      Accept
     </Button>
   )
 }

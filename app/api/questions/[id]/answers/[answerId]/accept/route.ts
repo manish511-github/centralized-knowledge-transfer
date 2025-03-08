@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../../../../auth/[...nextauth]/route"
 import prisma from "@/lib/prisma"
+import { updateReputationOnAcceptedAnswer } from "@/lib/reputation"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string; answerId: string } }) {
   try {
@@ -50,9 +51,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       },
     })
 
+    // Update reputation for the answer author
+    await updateReputationOnAcceptedAnswer(answerId)
+
     return NextResponse.json(answer)
   } catch (error) {
-    console.error(error)
+    console.error("Error accepting answer:", error)
     return new NextResponse("Internal Error", { status: 500 })
   }
 }

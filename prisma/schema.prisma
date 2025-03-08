@@ -17,6 +17,8 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   department     String?
+  reputation     Int       @default(0)
+  bio            String?   @db.Text  // Added bio field
   
   questions      Question[]
   answers        Answer[]

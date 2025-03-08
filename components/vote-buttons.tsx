@@ -6,6 +6,7 @@ import { ArrowUp, ArrowDown } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 interface VoteButtonsProps {
   questionId?: string
@@ -84,27 +85,40 @@ export default function VoteButtons({ questionId, answerId, initialVotes, userVo
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-1">
       <Button
         variant="ghost"
         size="icon"
-        className={`rounded-full ${currentVote === 1 ? "bg-primary/20" : ""}`}
+        className={cn(
+          "rounded-full h-8 w-8 transition-colors",
+          currentVote === 1 ? "bg-primary/20 text-primary hover:bg-primary/30" : "",
+        )}
         onClick={() => handleVote(1)}
         disabled={isVoting}
         aria-label="Upvote"
       >
-        <ArrowUp size={20} />
+        <ArrowUp size={18} />
       </Button>
-      <span className="font-semibold">{votes}</span>
+      <span
+        className={cn(
+          "font-medium text-sm py-1",
+          votes > 0 ? "text-green-600 dark:text-green-400" : votes < 0 ? "text-red-600 dark:text-red-400" : "",
+        )}
+      >
+        {votes}
+      </span>
       <Button
         variant="ghost"
         size="icon"
-        className={`rounded-full ${currentVote === -1 ? "bg-primary/20" : ""}`}
+        className={cn(
+          "rounded-full h-8 w-8 transition-colors",
+          currentVote === -1 ? "bg-primary/20 text-primary hover:bg-primary/30" : "",
+        )}
         onClick={() => handleVote(-1)}
         disabled={isVoting}
         aria-label="Downvote"
       >
-        <ArrowDown size={20} />
+        <ArrowDown size={18} />
       </Button>
     </div>
   )

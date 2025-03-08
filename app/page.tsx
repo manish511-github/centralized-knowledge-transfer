@@ -40,6 +40,7 @@ export default async function Home({
           id: true,
           name: true,
           department: true,
+          reputation: true,
         },
       },
       tags: true,

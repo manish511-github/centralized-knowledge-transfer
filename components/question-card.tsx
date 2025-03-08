@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, ArrowUp, ArrowDown, Eye } from "lucide-react"
+import ReputationBadge from "@/components/reputation-badge"
 
 interface QuestionCardProps {
   question: {
@@ -10,6 +11,7 @@ interface QuestionCardProps {
     author: {
       name: string
       department: string | null
+      reputation?: number
     }
     votes: number
     answers: number
@@ -81,8 +83,15 @@ export default function QuestionCard({ question }: QuestionCardProps) {
 
             <div className="flex items-center gap-2 ml-auto">
               <span className="text-muted-foreground">{formatDate(question.createdAt)}</span>
-              <span className="font-medium">{question.author.name}</span>
-              <span className="text-muted-foreground">{question.author.department}</span>
+              <div className="flex flex-col items-end">
+                <span className="font-medium">{question.author.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{question.author.department}</span>
+                  {question.author.reputation !== undefined && (
+                    <ReputationBadge reputation={question.author.reputation} size="sm" />
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

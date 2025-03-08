@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Eye } from "lucide-react"
+import { MessageSquare, Eye, Calendar, Check } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/lib/auth"
 import VoteButtons from "@/components/vote-buttons"
 import AnswerForm from "@/components/answer-form"
 import AcceptAnswerButton from "@/components/accept-answer-button"
+import { Separator } from "@/components/ui/separator"
+import ReputationBadge from "@/components/reputation-badge"
 
 export default async function QuestionDetail({ params }: { params: { id: string } }) {
   // Get current user
@@ -24,6 +26,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
           name: true,
           image: true,
           department: true,
+          reputation: true,
         },
       },
       tags: true,
@@ -82,6 +85,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
           name: true,
           image: true,
           department: true,
+          reputation: true,
         },
       },
     },
@@ -138,122 +142,145 @@ export default async function QuestionDetail({ params }: { params: { id: string 
   const isQuestionAuthor = currentUser?.id === question.author.id
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-6">
-        <Link href="/questions" className="text-primary hover:underline mb-4 block">
+        <Link href="/questions" className="text-primary hover:underline mb-4 inline-flex items-center gap-1">
           ← Back to questions
         </Link>
-        <h1 className="text-3xl font-bold">{question.title}</h1>
-        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-          <span>Asked {formatDate(question.createdAt)}</span>
-          <span>•</span>
-          <span className="flex items-center gap-1">
-            <Eye size={16} />
-            {question.views} views
-          </span>
+        <h1 className="text-3xl font-bold mt-4">{question.title}</h1>
+        <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Calendar size={14} />
+            <span>Asked {formatDate(question.createdAt)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Eye size={14} />
+            <span>{question.views} views</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
-          <VoteButtons questionId={question.id} initialVotes={votes._sum.value || 0} userVote={userQuestionVote} />
-        </div>
+      <Card className="overflow-hidden">
+        <div className="flex">
+          {/* Vote buttons column */}
+          <div className="p-4 border-r flex flex-col items-center justify-start pt-6 w-16">
+            <VoteButtons questionId={question.id} initialVotes={votes._sum.value || 0} userVote={userQuestionVote} />
+          </div>
 
-        <div className="md:col-span-11">
-          <Card>
-            <CardContent className="p-6">
-              <div className="prose max-w-none dark:prose-invert">
-                <p className="whitespace-pre-line">{question.body}</p>
-              </div>
+          {/* Question content */}
+          <CardContent className="p-6 flex-1">
+            <div className="prose max-w-none dark:prose-invert">
+              <p className="whitespace-pre-line">{question.body}</p>
+            </div>
 
-              <div className="flex flex-wrap gap-2 mt-6">
-                {question.tags.map((tag) => (
-                  <Badge key={tag.id} variant="secondary">
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mt-6">
+              {question.tags.map((tag) => (
+                <Badge key={tag.id} variant="secondary">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
 
-              <div className="flex justify-between items-center mt-6 pt-6 border-t">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={question.author.image || "/placeholder.svg?height=40&width=40"}
-                      alt={question.author.name || ""}
-                    />
-                    <AvatarFallback>{question.author.name?.charAt(0) || "?"}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{question.author.name}</p>
-                    <p className="text-sm text-muted-foreground">{question.author.department}</p>
+            <div className="flex justify-end mt-6">
+              <div className="bg-muted/30 rounded-lg p-3 flex items-center gap-3 max-w-xs">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={question.author.image || "/placeholder.svg?height=40&width=40"}
+                    alt={question.author.name || ""}
+                  />
+                  <AvatarFallback>{question.author.name?.charAt(0) || "?"}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{question.author.name}</p>
+                    {question.author.reputation !== undefined && (
+                      <ReputationBadge reputation={question.author.reputation} size="sm" />
+                    )}
                   </div>
+                  <p className="text-xs text-muted-foreground">{question.author.department}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </div>
+      </Card>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-              <MessageSquare size={20} />
-              {answersWithVotes.length} Answers
-            </h2>
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
+          <MessageSquare size={20} />
+          {answersWithVotes.length} {answersWithVotes.length === 1 ? "Answer" : "Answers"}
+        </h2>
 
+        {answersWithVotes.length > 0 ? (
+          <div className="space-y-6">
             {answersWithVotes.map((answer) => (
-              <div key={answer.id} className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  <div className="md:col-span-1 flex md:flex-col items-center justify-center gap-2">
+              <Card key={answer.id} className={answer.isAccepted ? "border-green-500 shadow-md" : ""}>
+                <div className="flex">
+                  {/* Vote buttons column */}
+                  <div className="p-4 border-r flex flex-col items-center justify-start pt-6 w-16">
                     <VoteButtons answerId={answer.id} initialVotes={answer.votes} userVote={answer.userVote} />
                   </div>
 
-                  <div className="md:col-span-11">
-                    <Card className={answer.isAccepted ? "border-green-500" : ""}>
-                      <CardContent className="p-6">
-                        {answer.isAccepted && (
-                          <div className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-3 py-1 rounded-md inline-block mb-4">
-                            Accepted Answer
-                          </div>
-                        )}
-                        <div className="prose max-w-none dark:prose-invert">
-                          <p className="whitespace-pre-line">{answer.body}</p>
-                        </div>
+                  {/* Answer content */}
+                  <CardContent className="p-6 flex-1">
+                    {answer.isAccepted && (
+                      <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 mb-4">
+                        <Check size={16} />
+                        <span className="font-medium text-sm">Accepted Answer</span>
+                      </div>
+                    )}
 
-                        <div className="flex justify-between items-center mt-6 pt-6 border-t">
-                          <div className="flex items-center gap-3">
-                            <Avatar>
-                              <AvatarImage
-                                src={answer.author.image || "/placeholder.svg?height=40&width=40"}
-                                alt={answer.author.name || ""}
-                              />
-                              <AvatarFallback>{answer.author.name?.charAt(0) || "?"}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{answer.author.name}</p>
-                              <p className="text-sm text-muted-foreground">{answer.author.department}</p>
-                            </div>
+                    <div className="prose max-w-none dark:prose-invert">
+                      <p className="whitespace-pre-line">{answer.body}</p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
+                      <div className="bg-muted/30 rounded-lg p-3 flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={answer.author.image || "/placeholder.svg?height=32&width=32"}
+                            alt={answer.author.name || ""}
+                          />
+                          <AvatarFallback>{answer.author.name?.charAt(0) || "?"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-sm">{answer.author.name}</p>
+                            {answer.author.reputation !== undefined && (
+                              <ReputationBadge reputation={answer.author.reputation} size="sm" />
+                            )}
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-sm text-muted-foreground">Answered {formatDate(answer.createdAt)}</div>
-                            <AcceptAnswerButton
-                              questionId={question.id}
-                              answerId={answer.id}
-                              isAccepted={answer.isAccepted}
-                              isQuestionAuthor={isQuestionAuthor}
-                            />
-                          </div>
+                          <p className="text-xs text-muted-foreground">{answer.author.department}</p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-xs text-muted-foreground">Answered {formatDate(answer.createdAt)}</div>
+                        <AcceptAnswerButton
+                          questionId={question.id}
+                          answerId={answer.id}
+                          isAccepted={answer.isAccepted}
+                          isQuestionAuthor={isQuestionAuthor}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
+        ) : (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">No answers yet. Be the first to answer this question!</p>
+          </Card>
+        )}
+      </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Your Answer</h2>
-            <AnswerForm questionId={question.id} />
-          </div>
-        </div>
+      <Separator className="my-10" />
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Your Answer</h2>
+        <AnswerForm questionId={question.id} />
       </div>
     </main>
   )

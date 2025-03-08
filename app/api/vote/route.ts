@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/route"
 import prisma from "@/lib/prisma"
+import { updateReputationOnVote } from "@/lib/reputation"
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,11 +31,17 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Store previous value for reputation calculation
+    const previousValue = existingVote?.value
+
     if (value === 0 && existingVote) {
       // Delete the vote if value is 0
       await prisma.vote.delete({
         where: { id: existingVote.id },
       })
+
+      // Update reputation
+      await updateReputationOnVote(session.user.id, value, questionId, answerId, previousValue)
 
       return NextResponse.json({ message: "Vote removed" })
     } else if (existingVote) {
@@ -43,6 +50,9 @@ export async function POST(request: NextRequest) {
         where: { id: existingVote.id },
         data: { value },
       })
+
+      // Update reputation
+      await updateReputationOnVote(session.user.id, value, questionId, answerId, previousValue)
 
       return NextResponse.json(updatedVote)
     } else if (value !== 0) {
@@ -54,6 +64,9 @@ export async function POST(request: NextRequest) {
           ...(questionId ? { questionId } : { answerId }),
         },
       })
+
+      // Update reputation
+      await updateReputationOnVote(session.user.id, value, questionId, answerId)
 
       return NextResponse.json(vote)
     } else {

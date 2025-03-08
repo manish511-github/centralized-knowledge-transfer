@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { SearchDialog } from "@/components/search-dialog"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import ReputationBadge from "@/components/reputation-badge"
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -80,9 +81,16 @@ export default function Navbar() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span>{session.user?.name}</span>
+                        {session.user?.reputation !== undefined && (
+                          <ReputationBadge reputation={session.user.reputation} size="sm" />
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link href="/profile">Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
