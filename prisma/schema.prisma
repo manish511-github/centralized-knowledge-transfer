@@ -18,13 +18,14 @@ model User {
   updatedAt      DateTime  @updatedAt
   department     String?
   reputation     Int       @default(0)
-  bio            String?   @db.Text  // Added bio field
-  
-  questions      Question[]
-  answers        Answer[]
-  votes          Vote[]
-  accounts       Account[]
-  sessions       Session[]
+  bio            String?   @db.Text
+  role           String? // Added role field
+
+  questions Question[]
+  answers   Answer[]
+  votes     Vote[]
+  accounts  Account[]
+  sessions  Session[]
 }
 
 model Account {
@@ -70,11 +71,11 @@ model Question {
   updatedAt DateTime @updatedAt
   authorId  String
   views     Int      @default(0)
-  
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  answers   Answer[]
-  votes     Vote[]
-  tags      Tag[]
+
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  answers Answer[]
+  votes   Vote[]
+  tags    Tag[]
 }
 
 model Answer {
@@ -85,23 +86,23 @@ model Answer {
   authorId   String
   questionId String
   isAccepted Boolean  @default(false)
-  
-  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  votes      Vote[]
+
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  votes    Vote[]
 }
 
 model Vote {
-  id         String    @id @default(cuid())
-  value      Int       // 1 for upvote, -1 for downvote
+  id         String   @id @default(cuid())
+  value      Int // 1 for upvote, -1 for downvote
   userId     String
   questionId String?
   answerId   String?
-  createdAt  DateTime  @default(now())
-  
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question   Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answer     Answer?   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer   Answer?   @relation(fields: [answerId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId, answerId])
 }
@@ -111,4 +112,3 @@ model Tag {
   name      String     @unique
   questions Question[]
 }
-

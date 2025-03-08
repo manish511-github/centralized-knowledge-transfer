@@ -24,6 +24,7 @@ import { getReputationLevel } from "@/lib/reputation"
 import ReputationBadge from "@/components/reputation-badge"
 import QuestionCard from "@/components/question-card"
 import { getCurrentUser } from "@/lib/auth"
+import { getRoleLabel } from "@/lib/roles"
 
 export default async function UserProfile({ params }: { params: { id: string } }) {
   // Get current user to check if viewing own profile
@@ -240,6 +241,12 @@ export default async function UserProfile({ params }: { params: { id: string } }
                 <div className="flex items-center gap-1">
                   <Building size={16} />
                   <span>{user.department}</span>
+                </div>
+              )}
+              {user.role && (
+                <div className="flex items-center gap-1">
+                  <Award size={16} />
+                  <span>{getRoleLabel(user.role)}</span>
                 </div>
               )}
               {user.email && (
