@@ -92,7 +92,7 @@ export function LatestArticles() {
           <p className="text-muted-foreground">Explore the latest technical articles from our community</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href="/articles">View all articles</Link>
+          <Link href="/">View all articles</Link>
         </Button>
       </div>
 

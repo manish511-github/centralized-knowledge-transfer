@@ -11,7 +11,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { PageHeader } from "@/components/page-header"
 
 const articleSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -94,7 +93,6 @@ export default function CreateArticlePage() {
 
   return (
     <div className="container max-w-3xl py-8">
-      <PageHeader heading="Write a Technical Article" text="Share your knowledge with the community" />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
