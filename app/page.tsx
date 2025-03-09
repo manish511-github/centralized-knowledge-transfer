@@ -3,25 +3,40 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import QuestionCard from "@/components/question-card"
 import DepartmentFilter from "@/components/department-filter"
+import QuestionSortTabs from "@/components/question-sort-tabs"
 import prisma from "@/lib/prisma"
+import { searchQuestions } from "@/app/actions/search-actions"
 
-// Update the Home page to filter questions by selected department
-
-// Add searchParams parameter to the component
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { department?: string }
+  searchParams: { department?: string; sort?: string; page?: string }
 }) {
   // Get department filter from URL
   const departmentFilter = searchParams.department ? searchParams.department.split(",") : []
+  // Get sort method from URL
+  const sortMethod = searchParams.sort || "newest"
 
-  // Fetch recent questions from the database with department filter
+  // Get page number from URL
+  const page = Number.parseInt(searchParams.page || "1", 10)
+  const limit = 10
+  const skip = (page - 1) * limit
+
+  // Determine sort order based on sortMethod
+  let orderBy: any = { createdAt: "desc" }
+
+  // For most-viewed, we can directly order by the views field
+  if (sortMethod === "most-viewed") {
+    orderBy = [{ views: "desc" }, { createdAt: "desc" }]
+  }
+
+  // For most-answered, we'll sort after fetching the data
+
+  // Fetch recent questions from the database with department filter and sorting
   const recentQuestions = await prisma.question.findMany({
-    take: 10,
-    orderBy: {
-      createdAt: "desc",
-    },
+    skip,
+    take: limit,
+    orderBy,
     where: {
       // Add department filter if departments are selected
       ...(departmentFilter.length > 0
@@ -73,25 +88,60 @@ export default async function Home({
     }),
   )
 
+  // Sort by answer count if most-answered is selected
+  if (sortMethod === "most-answered") {
+    questionsWithVotes.sort((a, b) => {
+      // First sort by answer count (descending)
+      if (b.answers !== a.answers) {
+        return b.answers - a.answers
+      }
+      // If answer counts are equal, sort by creation date (descending)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+  }
+
+  // Get total count of questions matching the filter
+  const totalQuestions = await prisma.question.count({
+    where: {
+      ...(departmentFilter.length > 0
+        ? {
+            author: {
+              department: {
+                in: departmentFilter,
+              },
+            },
+          }
+        : {}),
+    },
+  })
+
+  const totalPages = Math.ceil(totalQuestions / limit)
+
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Company Knowledge Hub</h1>
-          <p className="text-muted-foreground mt-2">Find answers, share knowledge, collaborate across departments</p>
-        </div>
-        <div className="flex gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search questions..."
-              className="pl-10 pr-4 py-2 border rounded-md w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 md:p-8 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Company Knowledge Hub</h1>
+            <p className="text-muted-foreground mt-2">Find answers, share knowledge, collaborate across departments</p>
           </div>
-          <Button asChild>
-            <Link href="/ask">Ask Question</Link>
-          </Button>
+          <div className="flex gap-4 w-full md:w-auto">
+            <form action={searchQuestions} className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                name="q"
+                placeholder="Search questions..."
+                className="pl-10 pr-4 py-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button type="submit" className="sr-only">
+                Search
+              </button>
+            </form>
+            <Button asChild>
+              <Link href="/ask">Ask Question</Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -105,35 +155,43 @@ export default async function Home({
 
         <div className="lg:col-span-3">
           <div className="bg-card rounded-lg p-4 shadow mb-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
               <h2 className="font-semibold text-lg">Recent Questions</h2>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  Newest
-                </Button>
-                <Button variant="ghost" size="sm">
-                  Most Answered
-                </Button>
-                <Button variant="ghost" size="sm">
-                  Most Viewed
-                </Button>
-              </div>
+              <QuestionSortTabs />
             </div>
 
             <div className="space-y-4">
               {questionsWithVotes.length > 0 ? (
                 questionsWithVotes.map((question) => <QuestionCard key={question.id} question={question} />)
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No questions found. Be the first to ask a question!
+                <div className="text-center py-8 border border-dashed rounded-lg">
+                  <div className="p-6 space-y-3">
+                    <p className="text-muted-foreground">No questions found with the current filters.</p>
+                    {departmentFilter.length > 0 && (
+                      <p className="text-sm text-muted-foreground">Try removing some department filters.</p>
+                    )}
+                    <Button asChild variant="outline" className="mt-2">
+                      <Link href="/ask">Ask a Question</Link>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {questionsWithVotes.length > 0 && (
+          {questionsWithVotes.length > 0 && page < totalPages && (
             <div className="flex justify-center">
-              <Button variant="outline">Load More Questions</Button>
+              <Link
+                href={{
+                  pathname: "/",
+                  query: {
+                    ...searchParams,
+                    page: page + 1,
+                  },
+                }}
+              >
+                <Button variant="outline">Load More Questions</Button>
+              </Link>
             </div>
           )}
         </div>

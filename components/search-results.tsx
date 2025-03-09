@@ -118,7 +118,7 @@ export function SearchResults({ initialQuery, initialType }: SearchResultsProps)
                   {results.tags.map((tag: any) => (
                     <div key={tag.id} className="border rounded-lg p-4 hover:border-primary transition-colors">
                       <div className="flex justify-between items-center mb-2">
-                        <Link href={`/questions?tag=${tag.name}`}>
+                        <Link href={`/tags/${tag.name}`}>
                           <Badge className="px-3 py-1 text-base font-medium">{tag.name}</Badge>
                         </Link>
                         <span className="text-muted-foreground text-sm">{tag._count.questions} questions</span>
@@ -153,7 +153,7 @@ export function SearchResults({ initialQuery, initialType }: SearchResultsProps)
                       <div className="w-12 h-12 rounded-full bg-muted-foreground/20 flex items-center justify-center">
                         {user.image ? (
                           <img
-                            src={user.image || "/placeholder.svg?height=48&width=48"}
+                            src={user.image || "/placeholder.svg"}
                             alt={user.name}
                             className="w-12 h-12 rounded-full"
                           />

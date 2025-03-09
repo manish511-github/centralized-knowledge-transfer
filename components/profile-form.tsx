@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { USER_ROLES } from "@/lib/roles"
 
 interface ProfileFormProps {
   user: {
@@ -20,16 +19,13 @@ interface ProfileFormProps {
     department: string | null
     bio: string | null
     image: string | null
-    role: string | null
   }
-  isAdmin?: boolean
 }
 
-export function ProfileForm({ user, isAdmin = false }: ProfileFormProps) {
+export function ProfileForm({ user }: ProfileFormProps) {
   const [name, setName] = useState(user.name || "")
   const [department, setDepartment] = useState(user.department || "")
   const [bio, setBio] = useState(user.bio || "")
-  const [role, setRole] = useState(user.role || "")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -48,7 +44,6 @@ export function ProfileForm({ user, isAdmin = false }: ProfileFormProps) {
           name,
           department,
           bio,
-          role: isAdmin ? role : undefined, // Only allow admins to change roles
         }),
       })
 
@@ -123,39 +118,6 @@ export function ProfileForm({ user, isAdmin = false }: ProfileFormProps) {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Role selection - only visible to admins */}
-      {isAdmin && (
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Select value={role} onValueChange={setRole} disabled={isSubmitting}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              {USER_ROLES.map((roleOption) => (
-                <SelectItem key={roleOption.id} value={roleOption.id}>
-                  {roleOption.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">Only administrators can change user roles.</p>
-        </div>
-      )}
-
-      {/* Regular users can see their role but not change it */}
-      {!isAdmin && user.role && (
-        <div className="space-y-2">
-          <Label htmlFor="role-display">Role</Label>
-          <Input
-            id="role-display"
-            value={USER_ROLES.find((r) => r.id === user.role)?.label || user.role}
-            disabled
-            className="bg-muted/50"
-          />
-        </div>
-      )}
 
       <div className="space-y-2">
         <Label htmlFor="bio">Bio</Label>

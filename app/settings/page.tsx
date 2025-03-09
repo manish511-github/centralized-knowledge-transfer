@@ -5,7 +5,6 @@ import { requireAuth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { ProfileForm } from "@/components/profile-form"
-import { isAdmin } from "@/lib/roles"
 
 export default async function SettingsPage() {
   // Ensure user is authenticated
@@ -20,16 +19,12 @@ export default async function SettingsPage() {
       department: true,
       bio: true,
       image: true,
-      role: true,
     },
   })
 
   if (!userData) {
     redirect("/auth/signin")
   }
-
-  // Check if user is an admin
-  const userIsAdmin = isAdmin(userData.role)
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-3xl">
@@ -42,7 +37,7 @@ export default async function SettingsPage() {
             <CardDescription>Update your personal information and how it appears on your profile</CardDescription>
           </CardHeader>
           <CardContent>
-            <ProfileForm user={userData} isAdmin={userIsAdmin} />
+            <ProfileForm user={userData} />
           </CardContent>
         </Card>
 
@@ -108,64 +103,5 @@ export default async function SettingsPage() {
       </div>
     </main>
   )
-}
-\
-Let's update the user profile API route to handle the role field:
-
-```typescript file="app/api/user/profile/route.ts"
-import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]/route"
-import prisma from "@/lib/prisma"
-import { isAdmin } from "@/lib/roles"
-
-export async function PUT(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
-
-    const body = await request.json()
-    const { name, department, bio, role } = body
-
-    // Check if user is trying to update role
-    if (role !== undefined) {
-      // Only admins can update roles
-      const currentUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { role: true },
-      })
-
-      if (!currentUser || !isAdmin(currentUser.role)) {
-        return new NextResponse("Forbidden: Only admins can update roles", { status: 403 })
-      }
-    }
-
-    // Update user profile
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name: name || undefined,
-        department: department || undefined,
-        bio: bio || undefined,
-        role: role || undefined,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        department: true,
-        bio: true,
-        role: true,
-      },
-    })
-
-    return NextResponse.json(updatedUser)
-  } catch (error) {
-    console.error("Error updating profile:", error)
-    return new NextResponse("Internal Error", { status: 500 })
-  }
 }
 

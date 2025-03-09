@@ -1,20 +1,14 @@
 import bcrypt from "bcrypt"
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-import { USER_ROLES } from "@/lib/roles"
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, name, password, department, role } = body
+    const { email, name, password, department } = body
 
     if (!email || !name || !password) {
       return new NextResponse("Missing required fields", { status: 400 })
-    }
-
-    // Validate role if provided
-    if (role && !USER_ROLES.some((r) => r.id === role)) {
-      return new NextResponse("Invalid role", { status: 400 })
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -35,7 +29,6 @@ export async function POST(request: Request) {
         name,
         hashedPassword,
         department,
-        role,
       },
     })
 
@@ -45,7 +38,6 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         department: user.department,
-        role: user.role,
       },
       { status: 201 },
     )

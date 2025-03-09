@@ -18,17 +18,13 @@ model User {
   updatedAt      DateTime  @updatedAt
   department     String?
   reputation     Int       @default(0)
-  bio            String?   @db.Text
-  role           String?
+  bio            String?   @db.Text  // Added bio field
   
-  questions       Question[]
-  answers         Answer[]
-  votes           Vote[]
-  accounts        Account[]
-  sessions        Session[]
-  visibleAnswers  AnswerVisibility[] @relation("VisibleToUsers")
-  teamsMembership TeamMember[]
-  ownedTeams      Team[]           @relation("TeamOwner")
+  questions      Question[]
+  answers        Answer[]
+  votes          Vote[]
+  accounts       Account[]
+  sessions       Session[]
 }
 
 model Account {
@@ -66,34 +62,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Team {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  isPrivate   Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  ownerId     String
-  
-  owner       User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members     TeamMember[]
-  questions   Question[]
-  answers     Answer[]
-}
-
-model TeamMember {
-  id         String   @id @default(cuid())
-  teamId     String
-  userId     String
-  role       String   @default("member") // member, admin
-  joinedAt   DateTime @default(now())
-  
-  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([teamId, userId])
-}
-
 model Question {
   id        String   @id @default(cuid())
   title     String
@@ -102,44 +70,25 @@ model Question {
   updatedAt DateTime @updatedAt
   authorId  String
   views     Int      @default(0)
-  teamId    String?  // null means public/company-wide
   
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  team      Team?    @relation(fields: [teamId], references: [id])
   answers   Answer[]
   votes     Vote[]
   tags      Tag[]
 }
 
 model Answer {
-  id                  String            @id @default(cuid())
-  body                String
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  authorId            String
-  questionId          String
-  isAccepted          Boolean           @default(false)
-  visibilityType      String            @default("public") // public, roles, departments, specific_users, team
-  visibleToRoles      String[]          @default([])
-  visibleToDepartments String[]         @default([])
-  teamId              String?           // If part of a team discussion
+  id         String   @id @default(cuid())
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  authorId   String
+  questionId String
+  isAccepted Boolean  @default(false)
   
-  author              User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  question            Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  team                Team?             @relation(fields: [teamId], references: [id])
-  votes               Vote[]
-  visibleToUsers      AnswerVisibility[]
-}
-
-model AnswerVisibility {
-  id        String   @id @default(cuid())
-  answerId  String
-  userId    String
-  
-  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
-  user      User     @relation("VisibleToUsers", fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([answerId, userId])
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  votes      Vote[]
 }
 
 model Vote {

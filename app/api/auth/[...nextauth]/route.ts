@@ -59,8 +59,6 @@ export const authOptions: AuthOptions = {
           ...session.user,
           id: token.id,
           department: token.department,
-          role: token.role,
-          reputation: token.reputation,
         },
       }
     },
@@ -70,8 +68,6 @@ export const authOptions: AuthOptions = {
           ...token,
           id: user.id,
           department: user.department,
-          role: user.role,
-          reputation: user.reputation,
         }
       }
       return token

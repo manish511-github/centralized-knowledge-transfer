@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Eye, Calendar, Check, Lock, AlertCircle } from "lucide-react"
+import { MessageSquare, Eye, Calendar, Check } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
@@ -11,10 +11,6 @@ import AnswerForm from "@/components/answer-form"
 import AcceptAnswerButton from "@/components/accept-answer-button"
 import { Separator } from "@/components/ui/separator"
 import ReputationBadge from "@/components/reputation-badge"
-import { canViewAnswer } from "@/lib/visibility"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { getRoleLabel } from "@/lib/roles"
-import { getDepartmentLabel } from "@/lib/visibility"
 
 export default async function QuestionDetail({ params }: { params: { id: string } }) {
   // Get current user
@@ -90,35 +86,15 @@ export default async function QuestionDetail({ params }: { params: { id: string 
           image: true,
           department: true,
           reputation: true,
-          role: true,
-        },
-      },
-      visibleToUsers: {
-        select: {
-          userId: true,
         },
       },
     },
     orderBy: [{ isAccepted: "desc" }, { createdAt: "desc" }],
   })
 
-  // Filter answers based on visibility settings
-  const visibleAnswers = answers.filter((answer) =>
-    canViewAnswer(
-      {
-        authorId: answer.authorId,
-        visibilityType: answer.visibilityType,
-        visibleToRoles: answer.visibleToRoles,
-        visibleToDepartments: answer.visibleToDepartments,
-        visibleToUsers: answer.visibleToUsers,
-      },
-      currentUser,
-    ),
-  )
-
   // Get vote counts for answers and user's votes
   const answersWithVotes = await Promise.all(
-    visibleAnswers.map(async (answer) => {
+    answers.map(async (answer) => {
       const votes = await prisma.vote.aggregate({
         where: {
           answerId: answer.id,
@@ -164,9 +140,6 @@ export default async function QuestionDetail({ params }: { params: { id: string 
 
   // Check if current user is the question author
   const isQuestionAuthor = currentUser?.id === question.author.id
-
-  // Count hidden answers
-  const hiddenAnswersCount = answers.length - visibleAnswers.length
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-5xl">
@@ -235,23 +208,8 @@ export default async function QuestionDetail({ params }: { params: { id: string 
       <div className="mt-10">
         <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
           <MessageSquare size={20} />
-          {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
-          {hiddenAnswersCount > 0 && (
-            <span className="text-sm font-normal text-muted-foreground ml-2">
-              ({hiddenAnswersCount} hidden due to visibility settings)
-            </span>
-          )}
+          {answersWithVotes.length} {answersWithVotes.length === 1 ? "Answer" : "Answers"}
         </h2>
-
-        {hiddenAnswersCount > 0 && (
-          <Alert className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Restricted Answers</AlertTitle>
-            <AlertDescription>
-              Some answers are not visible to you due to the author's visibility settings.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {answersWithVotes.length > 0 ? (
           <div className="space-y-6">
@@ -269,24 +227,6 @@ export default async function QuestionDetail({ params }: { params: { id: string 
                       <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 mb-4">
                         <Check size={16} />
                         <span className="font-medium text-sm">Accepted Answer</span>
-                      </div>
-                    )}
-
-                    {answer.visibilityType !== "public" && (
-                      <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 mb-4">
-                        <Lock size={16} />
-                        <span className="font-medium text-sm">
-                          {answer.visibilityType === "roles" && (
-                            <>Visible only to: {answer.visibleToRoles.map((role) => getRoleLabel(role)).join(", ")}</>
-                          )}
-                          {answer.visibilityType === "departments" && (
-                            <>
-                              Visible only to:{" "}
-                              {answer.visibleToDepartments.map((dept) => getDepartmentLabel(dept)).join(", ")}
-                            </>
-                          )}
-                          {answer.visibilityType === "specific_users" && <>Visible only to specific users</>}
-                        </span>
                       </div>
                     )}
 
@@ -310,10 +250,7 @@ export default async function QuestionDetail({ params }: { params: { id: string 
                               <ReputationBadge reputation={answer.author.reputation} size="sm" />
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {answer.author.department}
-                            {answer.author.role && ` • ${getRoleLabel(answer.author.role)}`}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{answer.author.department}</p>
                         </div>
                       </div>
 

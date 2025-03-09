@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -14,38 +12,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Menu, Search } from "lucide-react"
+import { Bell, Menu } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { SearchDialog } from "@/components/search-dialog"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import ReputationBadge from "@/components/reputation-badge"
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { SearchDialogContent } from "@/components/search-dialog-content"
 
 export default function Navbar() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const isLoggedIn = status === "authenticated"
-  const [searchDialogOpen, setSearchDialogOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
     router.push("/")
   }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      setSearchDialogOpen(true)
-    }
-  }
-
-  // Add keyboard shortcut listener
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown as any)
-    return () => document.removeEventListener("keydown", handleKeyDown as any)
-  }, [])
 
   return (
     <header className="border-b">
@@ -69,34 +51,14 @@ export default function Navbar() {
               <Link href="/users" className="text-muted-foreground hover:text-foreground transition-colors">
                 Users
               </Link>
-              <Link href="/teams" className="text-muted-foreground hover:text-foreground transition-colors">
-                Teams
-              </Link>
             </nav>
           </div>
 
           <div className="hidden md:block max-w-sm w-full px-4">
-            <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-muted-foreground">
-                  <Search className="mr-2 h-4 w-4" />
-                  <span>Search...</span>
-                  <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs text-muted-foreground">
-                    <span>⌘</span>K
-                  </kbd>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] p-0">
-                <SearchDialogContent />
-              </DialogContent>
-            </Dialog>
+            <SearchDialog />
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="md:hidden" onClick={() => setSearchDialogOpen(true)}>
-              <Search size={20} />
-            </Button>
-
             <ModeToggle />
 
             {isLoggedIn ? (
@@ -131,13 +93,13 @@ export default function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile">Profile</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link href="/settings">Settings</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link href="/my-questions">My Questions</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link href="/bookmarks">Bookmarks</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -166,17 +128,7 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="mb-4 mt-6">
-                  <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Search className="mr-2 h-4 w-4" />
-                        <span>Search...</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] p-0">
-                      <SearchDialogContent />
-                    </DialogContent>
-                  </Dialog>
+                  <SearchDialog />
                 </div>
 
                 <nav className="flex flex-col gap-4 mt-8">
@@ -191,9 +143,6 @@ export default function Navbar() {
                   </Link>
                   <Link href="/users" className="text-muted-foreground hover:text-foreground transition-colors">
                     Users
-                  </Link>
-                  <Link href="/teams" className="text-muted-foreground hover:text-foreground transition-colors">
-                    Teams
                   </Link>
                   {!isLoggedIn && (
                     <>

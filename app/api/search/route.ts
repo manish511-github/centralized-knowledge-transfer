@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: { createdAt: "desc" },
-        take: type === "all" ? 5 : 20,
+        take: 5,
       })
 
       results.questions = questions
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         orderBy: {
           name: "asc",
         },
-        take: type === "all" ? 5 : 20,
+        take: 5,
       })
 
       results.tags = tags
@@ -65,7 +65,6 @@ export async function GET(request: NextRequest) {
         where: {
           OR: [
             { name: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
             { department: { contains: query, mode: "insensitive" } },
           ],
         },
@@ -74,16 +73,14 @@ export async function GET(request: NextRequest) {
           name: true,
           image: true,
           department: true,
-          role: true,
-          reputation: true,
           _count: {
             select: { questions: true, answers: true },
           },
         },
         orderBy: {
-          reputation: "desc",
+          name: "asc",
         },
-        take: type === "all" ? 5 : 20,
+        take: 5,
       })
 
       results.users = users
