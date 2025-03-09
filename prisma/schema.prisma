@@ -29,6 +29,7 @@ model User {
   visibleAnswers  AnswerVisibility[] @relation("VisibleToUsers")
   teamsMembership TeamMember[]
   ownedTeams      Team[]           @relation("TeamOwner")
+  articles        Article[]
 }
 
 model Account {
@@ -42,7 +43,7 @@ model Account {
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token        String? @db.Text
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -74,6 +75,7 @@ model Team {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   ownerId     String
+  department  String?      // Added department field
   
   owner       User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members     TeamMember[]
@@ -161,5 +163,20 @@ model Tag {
   id        String     @id @default(cuid())
   name      String     @unique
   questions Question[]
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+  tags        String[] @default([])
+  readTime    Int?     // Estimated read time in minutes
+  
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 

@@ -7,6 +7,7 @@ import SearchQuestions from "@/components/search-questions"
 import prisma from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TrendingArticles } from "@/components/articles/trending-articles"
 
 // Update the Home page to filter questions by selected department and search query
 
@@ -212,7 +213,7 @@ export default async function Home({
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
+          <div className="md:col-span-1 space-y-6">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle>Departments</CardTitle>
@@ -222,6 +223,9 @@ export default async function Home({
                 <DepartmentFilter />
               </CardContent>
             </Card>
+
+            {/* Add the Trending Articles component here */}
+            <TrendingArticles />
           </div>
 
           <div className="md:col-span-3 space-y-6">

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, isPrivate } = body
+    const { name, description, isPrivate, department } = body
 
     if (!name || name.trim() === "") {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 })
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
         description,
         isPrivate: isPrivate === undefined ? true : isPrivate,
         ownerId: session.user.id,
+        department,
         // Add the creator as a team admin
         members: {
           create: {

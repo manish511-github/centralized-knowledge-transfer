@@ -7,10 +7,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Plus, Users, Globe, Lock, ChevronRight, ChevronDown } from "lucide-react"
+import { Plus, Users, Globe, Lock, ChevronRight, ChevronDown, Building2, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Badge } from "@/components/ui/badge"
 
 interface Team {
   id: string
@@ -68,36 +70,44 @@ export function SidebarTeams() {
     return null
   }
 
-  // Add a link to the Teams page at the top of the component
   return (
-    <div className="py-2">
-      <div
-        className="flex items-center justify-between px-3 py-2 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-2 font-medium">
-          <Users size={16} />
-          <span>Spaces</span>
-        </div>
-        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-      </div>
+    <div className="w-full py-2">
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="w-full">
+        <CollapsibleTrigger asChild>
+          <div className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-accent/50 rounded-md transition-colors">
+            <div className="flex items-center gap-2 font-medium">
+              <Building2 size={16} />
+              <span>Spaces</span>
+              {teams.length > 0 && (
+                <Badge variant="secondary" className="ml-auto text-xs h-5 px-1.5">
+                  {teams.length}
+                </Badge>
+              )}
+            </div>
+            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </div>
+        </CollapsibleTrigger>
 
-      {isExpanded && (
-        <>
-          <div className="mt-1">
+        <CollapsibleContent className="pt-1">
+          <div className="w-full mt-1 space-y-1">
             <Link
               href="/teams"
-              className="flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left hover:bg-accent/50 font-medium text-primary"
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left hover:bg-accent/50 transition-colors",
+                pathname === "/teams" ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground",
+              )}
             >
-              <Users size={16} />
+              <Sparkles size={16} />
               <span>Browse All Teams</span>
             </Link>
 
             <Link
               href="/"
               className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left",
-                isTeamActive(null) ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+                "flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left transition-colors",
+                isTeamActive(null)
+                  ? "bg-accent text-accent-foreground font-medium"
+                  : "text-muted-foreground hover:bg-accent/50",
               )}
             >
               <Globe size={16} />
@@ -107,7 +117,14 @@ export function SidebarTeams() {
 
           <Separator className="my-2" />
 
-          <div className="px-3 pb-1 text-xs text-muted-foreground font-medium">TEAMS</div>
+          <div className="px-3 pb-1 text-xs text-muted-foreground font-medium flex items-center">
+            <span>MY TEAMS</span>
+            {!loading && teams.length > 0 && (
+              <Badge variant="outline" className="ml-2 text-xs h-5 px-1.5">
+                {teams.length}
+              </Badge>
+            )}
+          </div>
 
           {loading ? (
             <div className="space-y-2 px-3 py-1">
@@ -116,7 +133,7 @@ export function SidebarTeams() {
             </div>
           ) : (
             <>
-              <ScrollArea className="max-h-[200px]">
+              <ScrollArea className="w-full max-h-[180px] overflow-y-auto pr-3">
                 {teams.length > 0 ? (
                   <div className="space-y-1 px-1">
                     {teams.map((team) => (
@@ -124,8 +141,10 @@ export function SidebarTeams() {
                         key={team.id}
                         href={`/team/${team.id}`}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left",
-                          isTeamActive(team.id) ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+                          "flex items-center gap-2 px-3 py-2 text-sm rounded-md w-full text-left transition-colors",
+                          isTeamActive(team.id)
+                            ? "bg-accent text-accent-foreground font-medium"
+                            : "text-muted-foreground hover:bg-accent/50",
                         )}
                       >
                         {team.isPrivate ? <Lock size={14} /> : <Users size={14} />}
@@ -134,7 +153,7 @@ export function SidebarTeams() {
                     ))}
                   </div>
                 ) : (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">No teams found</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground italic">No teams found</div>
                 )}
               </ScrollArea>
 
@@ -142,17 +161,17 @@ export function SidebarTeams() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full justify-start"
+                  className="w-full justify-start text-xs h-8"
                   onClick={() => router.push("/teams/create")}
                 >
-                  <Plus size={16} className="mr-2" />
+                  <Plus size={14} className="mr-1" />
                   Create new team
                 </Button>
               </div>
             </>
           )}
-        </>
-      )}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }
