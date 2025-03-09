@@ -25,9 +25,11 @@ interface VisibilitySelectorProps {
     visibleToDepartments: string[]
     visibleToUsers: { id: string; name: string; image?: string | null }[]
   }) => void
+  teamId?: string
+  teamName?: string
 }
 
-export function VisibilitySelector({ value, onChange }: VisibilitySelectorProps) {
+export function VisibilitySelector({ value, onChange, teamId, teamName }: VisibilitySelectorProps) {
   const [visibilityType, setVisibilityType] = useState(value.visibilityType || "public")
   const [visibleToRoles, setVisibleToRoles] = useState<string[]>(value.visibleToRoles || [])
   const [visibleToDepartments, setVisibleToDepartments] = useState<string[]>(value.visibleToDepartments || [])
@@ -100,12 +102,17 @@ export function VisibilitySelector({ value, onChange }: VisibilitySelectorProps)
     setVisibleToUsers(visibleToUsers.filter((user) => user.id !== userId))
   }
 
+  // Define visibility types based on context
+  const visibilityOptions = teamId
+    ? [{ id: "team", label: `Team Only (${teamName || "Team Members"})` }, ...VISIBILITY_TYPES]
+    : VISIBILITY_TYPES
+
   return (
     <div className="space-y-4">
       <div>
         <Label className="text-base">Who can see this answer?</Label>
         <RadioGroup value={visibilityType} onValueChange={setVisibilityType} className="mt-2 space-y-2">
-          {VISIBILITY_TYPES.map((type) => (
+          {visibilityOptions.map((type) => (
             <div key={type.id} className="flex items-center space-x-2">
               <RadioGroupItem value={type.id} id={`visibility-${type.id}`} />
               <Label htmlFor={`visibility-${type.id}`}>{type.label}</Label>

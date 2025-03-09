@@ -16,14 +16,16 @@ import { ChevronDown, ChevronUp, Lock } from "lucide-react"
 
 interface AnswerFormProps {
   questionId: string
+  teamId?: string | null
 }
 
-export default function AnswerForm({ questionId }: AnswerFormProps) {
+export default function AnswerForm({ questionId, teamId }: AnswerFormProps) {
   const [content, setContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVisibilityOpen, setIsVisibilityOpen] = useState(false)
+  // Update the visibility state to include 'team' option
   const [visibility, setVisibility] = useState({
-    visibilityType: "public",
+    visibilityType: teamId ? "team" : "public",
     visibleToRoles: [] as string[],
     visibleToDepartments: [] as string[],
     visibleToUsers: [] as { id: string; name: string; image?: string | null }[],
