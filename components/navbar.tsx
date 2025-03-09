@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,40 +12,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Menu, Search } from "lucide-react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import ReputationBadge from "@/components/reputation-badge"
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { SearchDialogContent } from "@/components/search-dialog-content"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, Menu, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import ReputationBadge from "@/components/reputation-badge";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { SearchDialogContent } from "@/components/search-dialog-content";
 
 export default function Navbar() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const isLoggedIn = status === "authenticated"
-  const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const isLoggedIn = status === "authenticated";
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut({ redirect: false })
-    router.push("/")
-  }
+    await signOut({ redirect: false });
+    router.push("/");
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      setSearchDialogOpen(true)
+      e.preventDefault();
+      setSearchDialogOpen(true);
     }
-  }
+  };
 
   // Add keyboard shortcut listener
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown as any)
-    return () => document.removeEventListener("keydown", handleKeyDown as any)
-  }, [])
+    document.addEventListener("keydown", handleKeyDown as any);
+    return () => document.removeEventListener("keydown", handleKeyDown as any);
+  }, []);
 
   return (
     <header className="border-b">
@@ -57,20 +57,41 @@ export default function Navbar() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-4">
-              <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Home
               </Link>
-              <Link href="/questions" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/questions"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Questions
               </Link>
-              <Link href="/tags" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/tags"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Tags
               </Link>
-              <Link href="/users" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/users"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Users
               </Link>
-              <Link href="/teams" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/teams"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Teams
+              </Link>
+              <Link
+                href="/assistant"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Assistant
               </Link>
             </nav>
           </div>
@@ -78,7 +99,10 @@ export default function Navbar() {
           <div className="hidden md:block max-w-sm w-full px-4">
             <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-muted-foreground">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-muted-foreground"
+                >
                   <Search className="mr-2 h-4 w-4" />
                   <span>Search...</span>
                   <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs text-muted-foreground">
@@ -93,7 +117,12 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="md:hidden" onClick={() => setSearchDialogOpen(true)}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSearchDialogOpen(true)}
+            >
               <Search size={20} />
             </Button>
 
@@ -108,13 +137,21 @@ export default function Navbar() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={session.user?.image || "/placeholder.svg?height=32&width=32"}
+                          src={
+                            session.user?.image ||
+                            "/placeholder.svg?height=32&width=32"
+                          }
                           alt={session.user?.name || "User"}
                         />
-                        <AvatarFallback>{session.user?.name?.charAt(0) || "U"}</AvatarFallback>
+                        <AvatarFallback>
+                          {session.user?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
@@ -123,7 +160,10 @@ export default function Navbar() {
                       <div className="flex flex-col">
                         <span>{session.user?.name}</span>
                         {session.user?.reputation !== undefined && (
-                          <ReputationBadge reputation={session.user.reputation} size="sm" />
+                          <ReputationBadge
+                            reputation={session.user.reputation}
+                            size="sm"
+                          />
                         )}
                       </div>
                     </DropdownMenuLabel>
@@ -141,7 +181,10 @@ export default function Navbar() {
                       <Link href="/bookmarks">Bookmarks</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-red-500 cursor-pointer"
+                    >
                       Log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -166,9 +209,15 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="mb-4 mt-6">
-                  <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+                  <Dialog
+                    open={searchDialogOpen}
+                    onOpenChange={setSearchDialogOpen}
+                  >
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                      >
                         <Search className="mr-2 h-4 w-4" />
                         <span>Search...</span>
                       </Button>
@@ -180,19 +229,34 @@ export default function Navbar() {
                 </div>
 
                 <nav className="flex flex-col gap-4 mt-8">
-                  <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link
+                    href="/"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Home
                   </Link>
-                  <Link href="/questions" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link
+                    href="/questions"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Questions
                   </Link>
-                  <Link href="/tags" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link
+                    href="/tags"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Tags
                   </Link>
-                  <Link href="/users" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link
+                    href="/users"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Users
                   </Link>
-                  <Link href="/teams" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link
+                    href="/teams"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Teams
                   </Link>
                   {!isLoggedIn && (
@@ -212,6 +276,5 @@ export default function Navbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-
