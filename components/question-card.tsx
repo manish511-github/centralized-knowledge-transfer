@@ -31,28 +31,22 @@ export default function QuestionCard({ question }: QuestionCardProps) {
     })
   }
 
-  const { votes, answers, views } = question
-
   return (
-    <div className="border rounded-lg p-4 hover:border-primary transition-colors hover:shadow-md bg-card">
+    <div className="border rounded-lg p-4 hover:border-primary transition-colors">
       <div className="flex gap-4">
         <div className="hidden sm:flex flex-col items-center gap-1 min-w-16">
           <div className="flex items-center gap-1 text-muted-foreground">
             <ArrowUp size={16} />
             <ArrowDown size={16} />
-            <span
-              className={`font-medium ${votes > 0 ? "text-green-600 dark:text-green-400" : votes < 0 ? "text-red-600 dark:text-red-400" : ""}`}
-            >
-              {votes}
-            </span>
+            <span className="font-medium">{question.votes}</span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
             <MessageSquare size={16} />
-            <span>{answers}</span>
+            <span>{question.answers}</span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
             <Eye size={16} />
-            <span>{views}</span>
+            <span>{question.views}</span>
           </div>
         </div>
 
@@ -75,21 +69,15 @@ export default function QuestionCard({ question }: QuestionCardProps) {
               <div className="flex items-center gap-1">
                 <ArrowUp size={16} />
                 <ArrowDown size={16} />
-                <span
-                  className={
-                    votes > 0 ? "text-green-600 dark:text-green-400" : votes < 0 ? "text-red-600 dark:text-red-400" : ""
-                  }
-                >
-                  {votes}
-                </span>
+                <span>{question.votes}</span>
               </div>
               <div className="flex items-center gap-1">
                 <MessageSquare size={16} />
-                <span>{answers}</span>
+                <span>{question.answers}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Eye size={16} />
-                <span>{views}</span>
+                <span>{question.views}</span>
               </div>
             </div>
 

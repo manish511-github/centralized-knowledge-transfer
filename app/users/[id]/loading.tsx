@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList } from "@/components/ui/tabs"
 
 export default function Loading() {
   return (
@@ -10,30 +11,35 @@ export default function Loading() {
         <Skeleton className="h-4 w-24" />
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center">
-                <Skeleton className="h-24 w-24 rounded-full mb-4" />
-                <Skeleton className="h-8 w-48 mb-2" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="overflow-hidden">
+            <div className="h-24 bg-muted/50"></div>
+            <CardContent className="pt-0 relative">
+              <div className="flex flex-col items-center -mt-12 text-center">
+                <Skeleton className="h-24 w-24 rounded-full border-4 border-background" />
+                <Skeleton className="h-8 w-48 mt-4" />
                 <Skeleton className="h-6 w-24 mt-2" />
-                <div className="mt-4 text-center">
-                  <Skeleton className="h-8 w-16 mx-auto" />
-                  <Skeleton className="h-4 w-24 mx-auto mt-1" />
-                </div>
-                <div className="flex justify-around w-full mt-6">
-                  <div className="text-center">
-                    <Skeleton className="h-6 w-12 mx-auto" />
-                    <Skeleton className="h-4 w-16 mx-auto mt-1" />
+
+                <div className="mt-4 w-full">
+                  <div className="flex justify-between items-center mb-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-12" />
                   </div>
-                  <div className="text-center">
-                    <Skeleton className="h-6 w-12 mx-auto" />
-                    <Skeleton className="h-4 w-16 mx-auto mt-1" />
-                  </div>
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-3 w-24 mt-1 ml-auto" />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
             </CardContent>
+            <CardFooter className="flex justify-center pb-6">
+              <Skeleton className="h-9 w-32" />
+            </CardFooter>
           </Card>
 
           <Card>
@@ -41,38 +47,62 @@ export default function Loading() {
               <Skeleton className="h-6 w-24" />
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center">
-                <Skeleton className="h-4 w-4 mr-2" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <div className="flex items-center">
-                <Skeleton className="h-4 w-4 mr-2" />
-                <Skeleton className="h-4 w-48" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 flex-shrink-0" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+              <Skeleton className="h-px w-full my-2" />
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="flex gap-2 mb-6">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-24" />
-            ))}
-          </div>
+        <div className="lg:col-span-9">
+          <Tabs defaultValue="questions" className="w-full">
+            <TabsList className="w-full justify-start mb-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-28" />
+              ))}
+            </TabsList>
 
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-64 mt-1" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full" />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-48 mt-1" />
+                </div>
+                <Skeleton className="h-9 w-24" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-40 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </Tabs>
         </div>
       </div>
     </main>

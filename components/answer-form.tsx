@@ -10,14 +10,27 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { VisibilitySelector } from "@/components/visibility-selector"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ChevronDown, ChevronUp, Lock } from "lucide-react"
 
 interface AnswerFormProps {
   questionId: string
+  teamId?: string | null
 }
 
-export default function AnswerForm({ questionId }: AnswerFormProps) {
+export default function AnswerForm({ questionId, teamId }: AnswerFormProps) {
   const [content, setContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isVisibilityOpen, setIsVisibilityOpen] = useState(false)
+  // Update the visibility state to include 'team' option
+  const [visibility, setVisibility] = useState({
+    visibilityType: teamId ? "team" : "public",
+    visibleToRoles: [] as string[],
+    visibleToDepartments: [] as string[],
+    visibleToUsers: [] as { id: string; name: string; image?: string | null }[],
+  })
+
   const router = useRouter()
   const { data: session } = useSession()
   const { toast } = useToast()
@@ -52,7 +65,16 @@ export default function AnswerForm({ questionId }: AnswerFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          visibility: {
+            visibilityType: visibility.visibilityType,
+            visibleToRoles: visibility.visibilityType === "roles" ? visibility.visibleToRoles : [],
+            visibleToDepartments: visibility.visibilityType === "departments" ? visibility.visibleToDepartments : [],
+            visibleToUsers:
+              visibility.visibilityType === "specific_users" ? visibility.visibleToUsers.map((user) => user.id) : [],
+          },
+        }),
       })
 
       if (!response.ok) {
@@ -60,6 +82,13 @@ export default function AnswerForm({ questionId }: AnswerFormProps) {
       }
 
       setContent("")
+      setVisibility({
+        visibilityType: "public",
+        visibleToRoles: [],
+        visibleToDepartments: [],
+        visibleToUsers: [],
+      })
+
       toast({
         title: "Answer posted",
         description: "Your answer has been posted successfully",
@@ -91,15 +120,40 @@ export default function AnswerForm({ questionId }: AnswerFormProps) {
               </Button>
             </div>
           ) : (
-            <Textarea
-              placeholder="Write your answer here..."
-              rows={8}
-              className="resize-y"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              disabled={isSubmitting}
-              required
-            />
+            <>
+              <Textarea
+                placeholder="Write your answer here..."
+                rows={8}
+                className="resize-y"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                disabled={isSubmitting}
+                required
+              />
+
+              <Collapsible
+                open={isVisibilityOpen}
+                onOpenChange={setIsVisibilityOpen}
+                className="mt-4 border rounded-md"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="flex w-full justify-between p-4 font-normal" type="button">
+                    <div className="flex items-center">
+                      <Lock className="mr-2 h-4 w-4" />
+                      <span>
+                        {visibility.visibilityType === "public"
+                          ? "Visible to everyone"
+                          : `Restricted visibility (${visibility.visibilityType})`}
+                      </span>
+                    </div>
+                    {isVisibilityOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-4 pt-0 border-t">
+                  <VisibilitySelector value={visibility} onChange={setVisibility} />
+                </CollapsibleContent>
+              </Collapsible>
+            </>
           )}
         </CardContent>
         {session?.user && (

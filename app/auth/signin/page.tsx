@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { AlertCircle } from "lucide-react"
+import { USER_ROLES } from "@/lib/roles"
 
 export default function SignIn() {
   const router = useRouter()
@@ -22,6 +23,7 @@ export default function SignIn() {
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState("")
+  const defaultTab = searchParams.get("tab") || "login"
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("")
@@ -33,6 +35,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [department, setDepartment] = useState("")
+  const [role, setRole] = useState("")
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -92,6 +95,7 @@ export default function SignIn() {
           email,
           password,
           department,
+          role,
         }),
       })
 
@@ -141,7 +145,7 @@ export default function SignIn() {
           <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
 
-        <Tabs defaultValue="login">
+        <Tabs defaultValue={defaultTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -289,6 +293,22 @@ export default function SignIn() {
                       <SelectItem value="finance">Finance</SelectItem>
                       <SelectItem value="security">Security</SelectItem>
                       <SelectItem value="operations">Operations</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={role} onValueChange={setRole} disabled={isLoading}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {USER_ROLES.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

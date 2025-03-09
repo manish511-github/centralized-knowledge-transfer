@@ -139,3 +139,16 @@ export function getReputationColor(reputation: number) {
   return "text-purple-500"
 }
 
+/**
+ * Get next reputation threshold
+ */
+export function getNextReputationThreshold(reputation: number) {
+  if (reputation < 10) return 10
+  if (reputation < 50) return 50
+  if (reputation < 200) return 200
+  if (reputation < 500) return 500
+  if (reputation < 1000) return 1000
+  if (reputation < 2000) return 2000
+  return Number.POSITIVE_INFINITY
+}
+
